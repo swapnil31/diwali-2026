@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+<title>Diwali.exe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yatra+One&family=JetBrains+Mono:wght@400;700&family=Hind:wght@400;600&display=swap">
+<style>
+/* Layout: one night-sky screen; a terminal window boots Diwali, then the sky fills with fireworks and a greeting. Deliberately dark-only. */
+:root {
+  --night: #120a1f;
+  --night-2: #1d1230;
+  --marigold: #ffb627;
+  --diya: #ff7b29;
+  --rani: #e6397a;
+  --text: #f6ead8;
+  --muted: #b9a7c9;
+  --ok: #7fe0a0;
+  --err: #ff6b6b;
+  --f-display: "Yatra One", "Georgia", serif;
+  --f-body: "Hind", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { min-height: 100%; }
+body {
+  background: radial-gradient(120% 80% at 50% 0%, var(--night-2), var(--night) 70%);
+  background-color: var(--night);
+  color: var(--text);
+  font-family: var(--f-body);
+  font-size: 16px;
+  overflow-x: hidden;
+}
+canvas#sky { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 760px; margin: 0 auto;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 22px;
+}
+header { text-align: center; display: grid; gap: 6px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 {
+  font-family: var(--f-display); font-weight: 400; margin: 0;
+  font-size: clamp(38px, 9vw, 72px); line-height: 1.05; text-wrap: balance;
+  color: var(--marigold);
+  text-shadow: 0 0 24px rgba(255, 150, 40, .45);
+}
+h1 .name { color: var(--text); display: block; font-size: .55em; margin-top: 6px; }
+.term {
+  background: rgba(10, 6, 18, .88);
+  border: 1px solid rgba(255, 182, 39, .25);
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.4) inset;
+  min-width: 0;
+}
+.bar { display: flex; align-items: center; gap: 7px; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.dot { width: 11px; height: 11px; border-radius: 50%; }
+.bar .t { margin-left: 8px; font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+pre#out {
+  margin: 0; padding: 14px 16px 18px; min-height: 300px;
+  font-family: var(--f-mono); font-size: 13.5px; line-height: 1.6;
+  white-space: pre-wrap; word-break: break-word; color: var(--text);
+}
+.p { color: var(--marigold); } .ok { color: var(--ok); } .err { color: var(--err); } .warn { color: var(--diya); } .dim { color: var(--muted); }
+.cursor { display: inline-block; width: .6em; background: var(--marigold); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.finale { text-align: center; display: grid; gap: 14px; justify-items: center; }
+.finale p { margin: 0; max-width: 34ch; font-size: 18px; line-height: 1.55; color: var(--text); text-wrap: balance; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+button {
+  font-family: var(--f-body); font-weight: 600; font-size: 16px;
+  padding: 12px 20px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--marigold); background: var(--marigold); color: var(--night);
+}
+button.ghost { background: transparent; color: var(--marigold); }
+button:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+.diyas { display: flex; gap: 14px; justify-content: center; }
+.diya { width: 34px; height: 30px; position: relative; }
+.diya::before { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 14px; background: var(--diya); border-radius: 0 0 20px 20px; }
+.diya::after { content: ""; position: absolute; bottom: 13px; left: 12px; width: 10px; height: 16px; background: var(--marigold); border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; box-shadow: 0 0 14px var(--marigold); animation: flick 1.4s ease-in-out infinite alternate; }
+.diya:nth-child(2)::after { animation-delay: .3s } .diya:nth-child(3)::after { animation-delay: .6s } .diya:nth-child(4)::after { animation-delay: .2s } .diya:nth-child(5)::after { animation-delay: .5s }
+@keyframes flick { from { transform: scaleY(1) rotate(-3deg); } to { transform: scaleY(1.15) rotate(3deg); } }
+.hint { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .cursor, .diya::after { animation: none; } }
+</style>
+</head>
+<body>
+
+<canvas id="sky"></canvas>
+<main class="wrap">
+  <header>
+    <div class="eyebrow">festival.of.lights // v2026</div>
+    <h1>Happy Diwali<span class="name" id="name">from our family to yours</span></h1>
+  </header>
+
+  <section class="term" aria-label="Diwali installer">
+    <div class="bar">
+      <span class="dot" style="background:#ff5f57"></span>
+      <span class="dot" style="background:#febc2e"></span>
+      <span class="dot" style="background:#28c840"></span>
+      <span class="t">~/home/diwali.sh</span>
+    </div>
+    <pre id="out" aria-live="polite"></pre>
+  </section>
+
+  <section class="finale" id="finale" hidden>
+    <div class="diyas" aria-hidden="true"><span class="diya"></span><span class="diya"></span><span class="diya"></span><span class="diya"></span><span class="diya"></span></div>
+    <p>May your home be bright, your sweets box never empty, and your bugs fixed before Monday.</p>
+    <div class="btns">
+      <button id="boom" type="button">Light a firework</button>
+      <button id="again" type="button" class="ghost">Run it again</button>
+    </div>
+    <div class="hint">Tap anywhere on the sky for more fireworks</div>
+  </section>
+</main>
+
+<script>
+(function () {
+  // Personal name from the link, e.g. ...#Rahul-Sharma
+  var raw = decodeURIComponent((location.hash || "").slice(1)).replace(/[-_]+/g, " ").trim();
+  if (raw && /^[A-Za-z0-9 ]{1,40}$/.test(raw)) {
+    document.getElementById("name").textContent = "Dear " + raw;
+  }
+
+  var lines = [
+    ["p", "$ sudo diwali --start --with-family"],
+    ["dim", "[sudo] password for mummy: ********"],
+    ["", "Cleaning the house............ "], ["ok", "112% done ", "(mummy found one more corner)"],
+    ["", "Checking sweets inventory..... "], ["ok", "kaju katli: 47 ", "(she counted, don't touch)"],
+    ["", "Restoring last year's ladoos.. "], ["err", "FAILED: already eaten by papa"],
+    ["", "Loading relatives............. "], ["warn", "WARN: \"beta, shaadi kab?\" detected"],
+    ["", "  -> deploying polite_smile.exe "], ["ok", "OK"],
+    ["", "Budget vs shopping............ "], ["err", "ERROR: wallet.exe not responding"],
+    ["", "Crackers mode................. "], ["ok", "green only (pets & planet happy)"],
+    ["", "Lighting diyas  "], ["ok", "[##########] 21/21"],
+    ["", "Forwarding \"Happy Diwali\" to 247 WhatsApp groups... "], ["ok", "done"],
+    ["p", "$ echo $MOOD"],
+    ["ok", "happy  rich-in-sweets  full-of-light"]
+  ];
+
+  var out = document.getElementById("out");
+  var finale = document.getElementById("finale");
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var timer = null, runId = 0;
+
+  function span(cls, txt) { var s = document.createElement("span"); if (cls) s.className = cls; s.textContent = txt; return s; }
+  function endsLine(i) { var l = lines[i]; return l[0] !== "" ; }
+
+  function run() {
+    var id = ++runId;
+    out.textContent = ""; finale.hidden = true;
+    var cursor = span("cursor", " ");
+    if (reduce) {
+      lines.forEach(function (l, i) {
+        out.appendChild(span(l[0], l[1])); if (l[2]) out.appendChild(span("dim", l[2]));
+        if (endsLine(i)) out.appendChild(document.createTextNode("\n"));
+      });
+      done(); return;
+    }
+    out.appendChild(cursor);
+    var i = 0;
+    function next() {
+      if (id !== runId) return;
+      if (i >= lines.length) { cursor.remove(); done(); return; }
+      var l = lines[i], el = span(l[0], ""), text = l[1], c = 0;
+      out.insertBefore(el, cursor);
+      var speed = l[0] === "p" ? 45 : (l[0] === "" ? 14 : 22);
+      (function type() {
+        if (id !== runId) return;
+        if (c < text.length) { el.textContent += text[c++]; timer = setTimeout(type, speed); return; }
+        if (l[2]) out.insertBefore(span("dim", l[2]), cursor);
+        if (endsLine(i)) out.insertBefore(document.createTextNode("\n"), cursor);
+        i++; timer = setTimeout(next, l[0] === "" ? 380 : 260);
+      })();
+    }
+    next();
+  }
+
+  function done() {
+    finale.hidden = false;
+    for (var k = 0; k < (reduce ? 2 : 7); k++) setTimeout(randomBurst, k * 280);
+  }
+
+  // Fireworks
+  var cv = document.getElementById("sky"), ctx = cv.getContext("2d");
+  var parts = [], W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var colors = ["#ffb627", "#ff7b29", "#e6397a", "#f6ead8", "#7fe0a0", "#9fd3ff"];
+  function size() { W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  addEventListener("resize", size); size();
+
+  function burst(x, y) {
+    var col = colors[(Math.random() * colors.length) | 0], n = reduce ? 30 : 70;
+    for (var j = 0; j < n; j++) {
+      var a = Math.PI * 2 * j / n, sp = 1.5 + Math.random() * 3.5;
+      parts.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, col: Math.random() < .2 ? "#fff" : col });
+    }
+  }
+  function randomBurst() { burst(W * (.15 + Math.random() * .7), H * (.12 + Math.random() * .4)); }
+
+  (function loop() {
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.fillStyle = "rgba(0,0,0,.18)"; ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "lighter";
+    for (var j = parts.length - 1; j >= 0; j--) {
+      var p = parts[j];
+      p.x += p.vx; p.y += p.vy; p.vy += .045; p.vx *= .985; p.vy *= .985; p.life -= .012;
+      if (p.life <= 0) { parts.splice(j, 1); continue; }
+      ctx.globalAlpha = p.life; ctx.fillStyle = p.col;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, 6.283); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(loop);
+  })();
+
+  document.getElementById("boom").addEventListener("click", function (e) { e.stopPropagation(); for (var k = 0; k < 3; k++) setTimeout(randomBurst, k * 200); });
+  document.getElementById("again").addEventListener("click", function (e) { e.stopPropagation(); clearTimeout(timer); run(); });
+  document.addEventListener("click", function (e) {
+    if (finale.hidden || e.target.closest("button, .term")) return;
+    burst(e.clientX, e.clientY);
+  });
+
+  run();
+})();
+</script>
+</body>
+</html>
