@@ -122,10 +122,20 @@ button:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
 <script>
 (function () {
   // Personal name from the link, e.g. ...#Rahul-Sharma
-  var raw = decodeURIComponent((location.hash || "").slice(1)).replace(/[-_]+/g, " ").trim();
-  if (raw && /^[A-Za-z0-9 ]{1,40}$/.test(raw)) {
-    document.getElementById("name").textContent = "Dear " + raw;
+  function applyName() {
+    var raw = "";
+    try { raw = decodeURIComponent((location.hash || "").slice(1)); } catch (e) {}
+    raw = raw.replace(/[-_+]+/g, " ").replace(/\s+/g, " ").trim();
+    var el = document.getElementById("name");
+    if (raw && /^[A-Za-z0-9 .']{1,40}$/.test(raw)) {
+      el.textContent = "Dear " + raw.replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+      document.title = "Happy Diwali, " + raw;
+    } else {
+      el.textContent = "from our family to yours";
+    }
   }
+  applyName();
+  addEventListener("hashchange", applyName);
 
   var lines = [
     ["p", "$ sudo diwali --start --with-family"],
